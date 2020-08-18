@@ -6,7 +6,10 @@ module.exports.signup = async function (req, res) {
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(422).json(errors.array());
+        return res.status(422).json({
+            success: false,
+            errorMessage: errors.array()
+        });
     }
 
     // "Kullanıcı kayıtlı mı?" kontrolü
@@ -53,7 +56,10 @@ module.exports.signin = async function (req, res) {
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(422).json(errors.array());
+        return res.status(422).json({
+            success: false,
+            errorMessage: errors.array()
+        });
     }
 
     // Kullanıcıyı veritabanında arıyoruz
@@ -78,7 +84,7 @@ module.exports.signin = async function (req, res) {
 
         // Son işlem olarak JSONWEBTOKEN ile token oluşturup istemciye gönderiyoruz.
         const token = jwt.sign({
-            _id: user.email
+            email: user.email
         }, process.env.SECRET_TOKEN);
 
         return res.status(200).json({
