@@ -1,9 +1,11 @@
 const User = require('../models/User');
 const { validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
+const mqttConnections = require('../mqttConnections');
 
 module.exports.signup = async function (req, res) {
 
+    // Gelen verinin uygun olup olmadığını, eksik olup olmadığını kontrol ediyoruz
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(422).json({
@@ -40,6 +42,10 @@ module.exports.signup = async function (req, res) {
 
     try {
         const savedUser = await user.save();
+
+        // Kaydolan kullanıcı için mqtt dinleyici oluşturuyoruz
+        mqttConnections.createMqttClient(savedUser._id, savedUser.accessId);
+
         return res.status(201).json({
             success: true,
             message: user.email
@@ -54,6 +60,7 @@ module.exports.signup = async function (req, res) {
 
 module.exports.signin = async function (req, res) {
 
+    // Gelen verinin uygun olup olmadığını, eksik olup olmadığını kontrol ediyoruz
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(422).json({

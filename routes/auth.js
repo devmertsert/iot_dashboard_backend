@@ -2,6 +2,12 @@ const router = require('express').Router();
 const authController = require('../controllers/authController');
 const { check } = require('express-validator');
 
+/*
+    name => min: 3
+    surname => min: 3
+    email
+    password => min: 6 max: 20
+*/
 router.post('/signup', [
     check('name')
         .not()
@@ -28,6 +34,10 @@ router.post('/signup', [
         .isLength({ min: 6, max: 20 })
 ], authController.signup);
 
+/*
+    email
+    password
+*/
 router.post('/signin', [
     check('email')
         .not()

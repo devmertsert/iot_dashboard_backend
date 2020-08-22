@@ -4,6 +4,7 @@ const http = require('http').createServer(app);
 const dotenv = require('dotenv');
 const createError = require('http-errors');
 const mongoose = require('mongoose');
+const mqttConenctions = require('./mqttConnections');
 
 
 dotenv.config();
@@ -15,11 +16,12 @@ app.use(express.urlencoded({
 mongoose.connect(process.env.DB_CONNECT, {
     useNewUrlParser: true,
     useUnifiedTopology: true
-}, (err) => {
+}, async (err) => {
     if (err) {
         return console.log("Mongodb connection failed");
     }
     console.log("Connected to Mongodb");
+    await mqttConenctions.createMqttClientToRestart();
 })
 
 // Routerları ekliyoruz

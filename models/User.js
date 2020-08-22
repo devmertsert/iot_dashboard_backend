@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const bcrypt = require('bcryptjs');
+const { v4: uuidv4 } = require('uuid');
 
 const userSchema = new Schema({
     name: {
@@ -26,7 +27,11 @@ const userSchema = new Schema({
         type: String,
         enum: ['admin', 'user'],
         default: 'user'
-    }
+    },
+    accessId: {
+        type: String,
+        default: uuidv4()
+    },
 }, {
     timestamps: true,
     collection: 'users'
