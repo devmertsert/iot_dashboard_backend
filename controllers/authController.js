@@ -94,9 +94,17 @@ module.exports.signin = async function (req, res) {
             email: user.email
         }, process.env.SECRET_TOKEN);
 
+        var userForm = {
+            name: user.name,
+            surname: user.surname,
+            email: user.email,
+            role: user.role,
+            accessId: user.accessId
+        }
         return res.status(200).json({
             success: true,
-            token: token
+            token: token,
+            user: userForm
         });
 
     } catch (err) {
