@@ -5,6 +5,7 @@ const dotenv = require('dotenv');
 const createError = require('http-errors');
 const mongoose = require('mongoose');
 const mqttConenctions = require('./mqttConnections');
+const cors = require('cors');
 
 
 dotenv.config();
@@ -12,6 +13,8 @@ app.use(express.json());
 app.use(express.urlencoded({
     extended: false
 }));
+
+app.use(cors());
 
 mongoose.connect(process.env.DB_CONNECT, {
     useNewUrlParser: true,
