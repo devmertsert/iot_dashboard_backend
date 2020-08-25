@@ -28,7 +28,7 @@ mongoose.connect(process.env.DB_CONNECT, {
 })
 
 // Routerları ekliyoruz
-const authRoute = require('./routes/auth');
+const authRoute = require('./routes/auth.route');
 
 // Routerları yönlendiriyoruz
 app.use('/auth', authRoute);

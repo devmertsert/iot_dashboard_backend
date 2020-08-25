@@ -1,13 +1,13 @@
 const mqtt = require('mqtt');
-const User = require('./models/User');
-const Feed = require('./models/Feed');
-const FeedData = require('./models/FeedData');
+const User = require('./models/user.model');
+const Feed = require('./models/feed.model');
+const FeedData = require('./models/feedData.model');
 
 let SOCKET_CONNECTIONS = {};
 
 module.exports.SOCKET_CONNECTIONS = SOCKET_CONNECTIONS;
 
-module.exports.createMqttClient = async function (userId, accessId) {
+module.exports.createMqttClient = function (userId, accessId) {
 
     const client = mqtt.connect(process.env.MQTT_URL);
 
@@ -15,7 +15,7 @@ module.exports.createMqttClient = async function (userId, accessId) {
         client.subscribe(accessId + '/#');
     });
 
-    client.on('message', (topic, payload) => {
+    client.on('message', async (topic, payload) => {
         var parsedTopic = topic.toString().split('/');
         if (parsedTopic[1]) {
             try {
@@ -29,26 +29,17 @@ module.exports.createMqttClient = async function (userId, accessId) {
                     });
                     if (feed) {
                         var payloadToJSON = JSON.parse(payload.toString());
-                        var feeddataTemp = {};
-                        if (payloadToJSON.clientId) {
-                            const feeddata = new FeedData({
-                                parentId: feed.idForChildren,
-                                clientId: payloadToJSON.clientId,
-                                data: payloadToJSON.data
-                            });
-                            feeddataTemp = await feeddata.save();
-                        }
-                        else {
-                            const feeddata = new FeedData({
-                                parentId: feed.idForChildren,
-                                data: payloadToJSON
-                            });
-                            feeddataTemp = await feeddata.save();
-                        }
-                        console.log(feeddataTemp);
+                        const feeddata = new FeedData({
+                            parentId: feed.idForChildren,
+                            clientId: payloadToJSON.clientId ? payloadToJSON.clientId : ,
+                            data: payloadToJSON.data
+                        });
+                        const savedFeedData = await feeddata.save();
+                        console.log(savedFeedData);
                     }
                 }
             } catch (error) {
+                console.log(error);
             }
         }
         else {
@@ -66,7 +57,7 @@ module.exports.createMqttClientToRestart = async function () {
     try {
         const users = await User.find();
         for (var i in users) {
-            await this.createMqttClient(users[i]._id, users[i].accessId);
+            this.createMqttClient(users[i]._id, users[i].accessId);
         }
     } catch (err) {
         console.log('Failed to createMqttClientToRestart');

@@ -1,4 +1,4 @@
-const User = require('../models/User');
+const UserService = require('../services/user.service');
 const { validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
 const mqttConnections = require('../mqttConnections');
@@ -14,46 +14,23 @@ module.exports.signup = async function (req, res) {
         });
     }
 
-    // "Kullanıcı kayıtlı mı?" kontrolü
     try {
-        const checkUser = await User.findOne({
-            email: req.body.email
-        });
-        if (checkUser) {
-            return res.status(500).json({
-                success: false,
-                errorMessage: 'Bu e-posta ile kayıt yapılmış'
-            });
-        }
-    } catch (err) {
-        return res.status(500).json({
-            success: false,
-            errorMessage: err
-        });
-    }
 
-    // Kullanıcıyı kaydediyoruz
-    const user = new User({
-        name: req.body.name,
-        surname: req.body.surname,
-        email: req.body.email,
-        password: req.body.password
-    });
-
-    try {
-        const savedUser = await user.save();
+        // Kullanıcıyı kaydediyoruz
+        const user = await UserService.createUser(req.body);
 
         // Kaydolan kullanıcı için mqtt dinleyici oluşturuyoruz
-        mqttConnections.createMqttClient(savedUser._id, savedUser.accessId);
+        await mqttConnections.createMqttClient(user._id, user.accessId);
 
         return res.status(201).json({
             success: true,
             message: user.email
         });
-    } catch (err) {
+
+    } catch (error) {
         return res.status(500).json({
             success: false,
-            errorMessage: err
+            errorMessage: error.message
         });
     }
 }
@@ -69,11 +46,9 @@ module.exports.signin = async function (req, res) {
         });
     }
 
-    // Kullanıcıyı veritabanında arıyoruz
     try {
-        const user = await User.findOne({
-            email: req.body.email
-        });
+        // Kullanıcıyı veritabanında arıyoruz
+        const user = await UserService.getUserByEmail(req.body.email);
         if (!user) {
             return res.status(400).json({
                 success: false,
@@ -107,10 +82,10 @@ module.exports.signin = async function (req, res) {
             user: userForm
         });
 
-    } catch (err) {
+    } catch (error) {
         return res.status(500).json({
             success: false,
-            errorMessage: err
+            errorMessage: error
         });
     }
 
