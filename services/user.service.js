@@ -46,3 +46,19 @@ module.exports.getUserByEmail = async function (email) {
         throw error;
     }
 }
+
+/*
+    - accessId
+    başarılı olursa kullanıcıyı geri dönüyor
+    aksi takdirde hata fırlatıyor
+*/
+module.exports.getUserByAccessId = async function (accessId) {
+    try {
+        const user = await User.findOne({
+            accessId: accessId
+        });
+        return user;
+    } catch (error) {
+        throw error;
+    }
+}

@@ -25,13 +25,16 @@ mongoose.connect(process.env.DB_CONNECT, {
     }
     console.log("Connected to Mongodb");
     await mqttConenctions.createMqttClientToRestart();
+    console.log('Created mqtt connections');
 })
 
 // Routerları ekliyoruz
 const authRoute = require('./routes/auth.route');
+const feedRoute = require('./routes/feed.route');
 
 // Routerları yönlendiriyoruz
 app.use('/auth', authRoute);
+app.use('/feed', feedRoute);
 
 
 

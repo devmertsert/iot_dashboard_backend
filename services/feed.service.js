@@ -1,5 +1,6 @@
 const Feed = require('../models/feed.model');
 const FeedData = require('../models/feedData.model');
+const UserService = require('../services/user.service');
 
 /*
     - userId
@@ -44,6 +45,10 @@ module.exports.getFeed = async function (userId, feedName) {
 
 
 /*
+    - parentId
+    - clientId
+    - data
+    bu bilgiler ile bir FeedData oluşturup veritabanına kaydediyor
 */
 module.exports.createFeedData = async function (parentId, clientId, data) {
     try {
@@ -53,11 +58,54 @@ module.exports.createFeedData = async function (parentId, clientId, data) {
             data: data
         });
         const savedFeedData = await feeddata.save();
+        return savedFeedData;
     } catch (error) {
         throw error;
     }
 }
 
-module.exports.createFeedDataByAccessId = function (accessId, clientId, data) {
-
+/*
+    - accessId
+    - feedName
+    - payload
+        - clientId
+            eğer varsa bunu kullanıyor
+            yoksa (kullanıcı adı kullanıcı soyadı #accessId) şeklinde kaydediyor
+    payload ı json a çevirmeye çalışıyor çünkü payload sadece json olursa işlem yapıcak şekilde kodlandı
+        eğer çeviremezse hata fırlatıyor
+        eğer çevirirse içerisinde data özelliği varmı kontrolü yapıyor
+            yoksa hata fırlatıyor
+            varsa işlemlere devam ediyor
+    gelen accessId ile kullancıyı bulup _id sini alıp bu id ve feedName ile Feed i buluyor
+    ardından içerisindeki idForChildren ile yeni bir tane FeedData oluşturuyor
+    FeedData parametreleri için
+    ilk olarak parentId(idForChildren)
+    sonra clientId
+    son olarak data olarak payloadToJSON içindeki data yı string e çevirip kaydediyoruz
+    ve geriye kayıtlı feeddata yı dönüyoruz
+*/
+module.exports.checkPayloadAndCreateFeedData = async function (accessId, feedName, payload) {
+    try {
+        var payloadToJSON = JSON.parse(payload);
+        if (!payloadToJSON.data) {
+            throw new Error('Geçersiz payload');
+        }
+        const user = await UserService.getUserByAccessId(accessId);
+        if (user) {
+            const feed = await this.getFeed(user._id, feedName);
+            if (feed) {
+                var clientId = payloadToJSON.clientId ? JSON.stringify(payloadToJSON.clientId) : (user.name + ' ' + user.surname + ' #' + user.accessId);
+                const feeddata = await this.createFeedData(feed.idForChildren, clientId, JSON.stringify(payloadToJSON.data));
+                return feeddata;
+            }
+            else {
+                throw new Error('Geçersiz feedName');
+            }
+        }
+        else {
+            throw new Error('Geçerli kullanıcı bulunamadı');
+        }
+    } catch (error) {
+        throw error;
+    }
 }

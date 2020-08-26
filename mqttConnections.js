@@ -2,6 +2,8 @@ const mqtt = require('mqtt');
 const User = require('./models/user.model');
 const Feed = require('./models/feed.model');
 const FeedData = require('./models/feedData.model');
+const UserService = require('./services/user.service');
+const FeedService = require('./services/feed.service');
 
 let SOCKET_CONNECTIONS = {};
 
@@ -17,33 +19,32 @@ module.exports.createMqttClient = function (userId, accessId) {
 
     client.on('message', async (topic, payload) => {
         var parsedTopic = topic.toString().split('/');
+        /*
+            eğer subscribe olduğumuz accessId ile gelidiyse(topic) buraya girer aksi halde girmez
+            girince
+                accessId/feedName
+            yapısına uygunmu diye kontrol ediyoruz
+                '/' ile ayırdığımız stirng için 2. elemana(parsedTopic[1]) a bakıyoruz eğer varsa devam ediyoruz
+                yoksa geçersiz topic sayıp işlem yapmıyoruz
+        */
         if (parsedTopic[1]) {
             try {
-                const user = await User.findOne({
-                    accessId: parsedTopic[0]
-                });
-                if (user) {
-                    const feed = await Feed.findOne({
-                        userId: user._id,
-                        feedName: topic.toString().substring(topic.indexOf('/') + 1, topic.toString().length)
-                    });
-                    if (feed) {
-                        var payloadToJSON = JSON.parse(payload.toString());
-                        const feeddata = new FeedData({
-                            parentId: feed.idForChildren,
-                            clientId: payloadToJSON.clientId ? payloadToJSON.clientId : ,
-                            data: payloadToJSON.data
-                        });
-                        const savedFeedData = await feeddata.save();
-                        console.log(savedFeedData);
-                    }
-                }
+                // gelen payload ı string e çeviriyoruz (sanırım tipi buffer dı, o yüzden çeviriyoruz)
+                var payloadToJSON = payload.toString();
+                /*
+                    parsedTopic içerisinde ilk eleman accessId olarak kabul edip devamına bakıyoruz
+                    ve devamında başka '/' işareti varsa dikakte almayıp tümünü(accessId hariç) alıp işlem için
+                    kullanıyoruz (feedName olarak)
+                */
+                var parsedTopicWithoutAccessId = topic.toString().substring(topic.indexOf('/') + 1, topic.toString().length);
+                const feeddata = await FeedService.checkPayloadAndCreateFeedData(parsedTopic[0], parsedTopicWithoutAccessId, payloadToJSON);
+                console.log(feeddata);
             } catch (error) {
-                console.log(error);
+                console.log(error.message);
             }
         }
         else {
-            console.log('geçersiz');
+            console.log('geçersiz topic');
         }
 
     });

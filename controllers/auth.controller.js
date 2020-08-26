@@ -20,7 +20,7 @@ module.exports.signup = async function (req, res) {
         const user = await UserService.createUser(req.body);
 
         // Kaydolan kullanıcı için mqtt dinleyici oluşturuyoruz
-        await mqttConnections.createMqttClient(user._id, user.accessId);
+        mqttConnections.createMqttClient(user._id, user.accessId);
 
         return res.status(201).json({
             success: true,
