@@ -66,10 +66,11 @@ module.exports.signin = async function (req, res) {
 
         // Son işlem olarak JSONWEBTOKEN ile token oluşturup istemciye gönderiyoruz.
         const token = jwt.sign({
-            email: user.email
+            _id: user._id
         }, process.env.SECRET_TOKEN);
 
         var userForm = {
+            _id: user._id,
             name: user.name,
             surname: user.surname,
             email: user.email,
@@ -85,7 +86,7 @@ module.exports.signin = async function (req, res) {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            errorMessage: error
+            errorMessage: error.message
         });
     }
 

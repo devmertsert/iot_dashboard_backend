@@ -43,6 +43,21 @@ module.exports.getFeed = async function (userId, feedName) {
     }
 }
 
+/*
+    - userId
+    Bu id e ait kullanıcının tüm feed lerini geri döndürür
+*/
+module.exports.getFeeds = async function (userId) {
+    try {
+        const feeds = await Feed.find({
+            userId: userId
+        });
+        return feeds;
+    } catch (error) {
+        throw error;
+    }
+}
+
 
 /*
     - parentId

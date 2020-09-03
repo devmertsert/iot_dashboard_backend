@@ -15,4 +15,6 @@ router.post('/createFeed', verify, [
         .withMessage('feedName string olmalıdır')
 ], feedController.createFeed);
 
+router.get('/feeds', verify, feedController.feeds);
+
 module.exports = router;

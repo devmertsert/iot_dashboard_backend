@@ -1,13 +1,10 @@
 const mqtt = require('mqtt');
 const User = require('./models/user.model');
-const Feed = require('./models/feed.model');
-const FeedData = require('./models/feedData.model');
-const UserService = require('./services/user.service');
 const FeedService = require('./services/feed.service');
 
-let SOCKET_CONNECTIONS = {};
+let MQTT_CONNECTIONS = {};
 
-module.exports.SOCKET_CONNECTIONS = SOCKET_CONNECTIONS;
+module.exports.MQTT_CONNECTIONS = MQTT_CONNECTIONS;
 
 module.exports.createMqttClient = function (userId, accessId) {
 
@@ -49,7 +46,7 @@ module.exports.createMqttClient = function (userId, accessId) {
 
     });
 
-    SOCKET_CONNECTIONS[userId] = client;
+    MQTT_CONNECTIONS[userId] = client;
 
 }
 
@@ -62,7 +59,7 @@ module.exports.createMqttClientToRestart = async function () {
         }
     } catch (err) {
         console.log('Failed to createMqttClientToRestart');
-        console.log(err);
+        console.log(err.message);
         return;
     }
 
