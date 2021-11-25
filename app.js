@@ -6,6 +6,7 @@ const createError = require('http-errors');
 const mongoose = require('mongoose');
 const mqttConenctions = require('./mqttConnections');
 const cors = require('cors');
+var io = require('./socketConnections').listen(http);
 
 
 dotenv.config();
